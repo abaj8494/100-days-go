@@ -8,6 +8,10 @@ this is the go code that I am really learning how to build. this is why I am lea
 6. euclidean algorithm
 7. extended euclidean algorithm
 8. modulo calculator
+9. fermat's little theorem solver
+10. nth fibonacci number
+11. random number generator (2 sliders)
+12. random float generator (2 sliders)
 
 next time I visit
 1. base changer
