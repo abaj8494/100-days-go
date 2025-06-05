@@ -6,7 +6,7 @@ It's really the same thing as [100 Days of Python](https://github.com/abaj8494/1
 
 The repository is split into:
 
-0. tutorial (by go.dev)
+0. official tutorial (by go.dev)
 1. tools (for [tools.abaj.ai](tools.abaj.ai))
-2. exercises (w3resource (same as the python repo))
-3. book (An Idiomatic Approach to Learning Go by Jon Bodner)
+2. book (An Idiomatic Approach to Learning Go by Jon Bodner)
+3. goprojects. ideas by [dreamsofcode](http://github.com/dreamsofcode-io)
