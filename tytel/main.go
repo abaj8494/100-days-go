@@ -80,6 +80,7 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+  // can we refactor to use polymorphism?
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -123,3 +124,119 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	return m, nil
 }
+
+
+func (m model) View() string {
+  if len(m.target) == 0 {
+    return "No text loaded.\n"
+  }
+
+  var b strings.Builder
+
+  // title
+  b.WriteString(titleStyle.Render("Typing Practice") + "\n")
+  if m.passageName != "" {
+    b.WriteString(infoStyle.Render("Passage: "+m.passageName) + "\n")
+  }
+  b.WriteString("\n")
+
+  // render text with per-character colouring:
+  for i, r := range m.target {
+    display := string(r)
+    if r == ' ' {
+      display = "." // show spaces so you can see them
+    }
+
+    if i < len(m.typed) {
+      if m.typed[i] == r {
+        b.WriteString(correctStyle.Render(display))
+      } else {
+        b.WriteString(wrongStyle.Render(display))
+      }
+    } else if i == len(m.typed) && !m.done {
+      b.WriteString(cursorStyle.Render(display))
+    } else {
+      b.WriteString(display)
+    }
+  }
+  b.WriteString("\n\n")
+
+  // stats:
+  wpm, acc := m.stats()
+  elapsed := m.elapsed().Seconds()
+
+  b.WriteString(fmt.Sprintf(
+    "Time: %.1fs WPM: %.1f Accuracy: %.1f%%\n",
+    elapsed, wpm, acc,
+  ))
+  b.WriteString(fmt.Sprintf(
+    "Chars: %d / %d\n",
+    len(m.typed), len(m.target),
+  ))
+
+  // instructions
+  b.WriteString("\n")
+  if m.done {
+    b.WriteString(infoStyle.Render("Finished! Press 'r' for a new passage, or Ctrl+C to")),
+  } else if m.startedAt.IsZero() {
+    b.WriteString(infoStyle.Render("Start typing to begin. Backspace to correct, Esc/Ctrl to ..."))
+  } else {
+    b.WriteString(infoStyle.Render("keep going! Backspace to correct, Esc/Ctrl+C to quit"))
+  }
+
+  return b.String()
+
+}
+
+// stats helpers
+func (m model) elapsed() time.Duration() {
+  if m.startedAt.IsZero() {
+    return 0
+  }
+  if m.done {
+    return m.finishedAt.Sub(m.startedAt)
+  }
+  return time.Since(m.startedAt)
+}
+
+func (m model) stats() (wpm float64, accuracy float64) {
+  if len(m.typed) == 0 {
+    return 0, 0
+  }
+
+  correct := 0
+  for i, r := range m.typed {
+    if i < len(m.target) && r == m.target[i] {
+      correct++
+    }
+  }
+  total := len(m.typed)
+
+  elapsedMinutes := m.elapsed().Minutes()
+  if elapsedMinutes <= 0 {
+    // avoid division by zero when you finish super quickly
+    elapsedMinutes = 1.0/60.0
+  }
+
+  // standard typing metric : 5 characters = 1 'word'
+  // change: TODO:
+  wpm = (float64(correct)/5.0) / elapsedMinutes
+  accuracy = float64(correct) / float64(total) * 100.0
+
+  return wpm, accuracy
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
