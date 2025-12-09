@@ -70,3 +70,56 @@ func defaultPassages() []passage {
 		},
 	}
 }
+
+// ////////////////////////////////////////////////////////////////////////////
+// bubbletea interface:
+// ////////////////////////////////////////////////////////////////////////////
+func (m model) Init() tea.Cmd {
+	// no initial async commands needed for now
+	return nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyCtrlC, tea.KeyEsc:
+			return m, tea.Quit
+
+		case tea.KeyBackspace:
+			if !m.done && len(m.typed) > 0 {
+				m.typed = m.typed[:len(m.typed)-1]
+			}
+			return m, nil
+		}
+		// if finished, allow restart with 'r'
+		if m.done {
+			if msg.String() == "r" {
+				return newRandomModel(), nil
+			}
+		}
+		// convert keypress into a rune we care about
+		var r rune
+		switch msg.Type {
+		case tea.KeyEnter:
+			r = '\n'
+		case tea.KeySpace:
+			r = ' '
+		default:
+			if len(msg.Runes) == 0 {
+				//ignore non-character keys
+				return m, nil
+			}
+			r = msg.Runes[0]
+		}
+		if m.startedAt.IsZero() {
+			m.startedAt = time.Now()
+		}
+		m.typed = append(m.typed, r)
+		if len(m.typed) >= len(m.target) {
+			m.done = true
+			m.finishedAt = time.Now()
+		}
+	}
+	return m, nil
+}
